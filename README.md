@@ -1,6 +1,7 @@
 # Code Genie 🧞‍♂️
 
 An intelligent AI-powered code generation application that transforms natural language descriptions into clean, functional code using Google's Gemini AI.
+![code genie interface](image.png)
 
 ## 📋 Project Overview
 
@@ -19,7 +20,13 @@ Code Genie is a full-stack web application designed to help developers quickly g
 
 <!-- Option 1: YouTube/Vimeo embed (most common) -->
 
-[![Watch Demo Video](image.png)](https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4)
+<!-- Autoplay Video with HTML5 video tag -->
+<video width="640" height="360" controls autoplay muted loop>
+  <source src="https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<!-- Alternative: Clickable thumbnail (fallback) -->
 
 <!-- Option 2: Direct video file (if you have a .mp4 file) -->
 <!-- <video width="640" height="360" controls>
@@ -29,8 +36,6 @@ Code Genie is a full-stack web application designed to help developers quickly g
 
 <!-- Option 3: GIF alternative (if you want to show a preview) -->
 <!-- ![Demo GIF](demo.gif) -->
-
-![code genie interface](image.png)
 
 ### 🎨 **Modern User Interface**
 
