@@ -16,15 +16,9 @@ Code Genie is a full-stack web application designed to help developers quickly g
 - Intelligent language detection and auto-formatting
 - Context-aware prompts for better code quality
 
-### 🎥 **Demo Video**
+### 🎥 Demo Video
 
-<!-- Option 1: YouTube/Vimeo embed (most common) -->
-
-<!-- Autoplay Video with HTML5 video tag -->
-<video width="640" height="360" controls autoplay muted loop>
-  <source src="https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video src="https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4" controls width="600"></video>
 
 <!-- Alternative: Clickable thumbnail (fallback) -->
 
