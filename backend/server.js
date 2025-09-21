@@ -17,34 +17,23 @@ const genAI = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
-// Configure allowed origins
-// Use ALLOWED_ORIGINS env var (comma separated) in production.
-// Fallback to local dev origin(s).
-const defaultOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://vibe-qoder.vercel.app"]
-    : ["http://localhost:3000", "http://127.0.0.1:3000"];
-
-const allowedOrigins = (
-  process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",")
-    : defaultOrigins
-).map((o) => o.trim().replace(/\/+$/, "")); // strip trailing slashes
+// Hardcoded allowed origins
+const allowedOrigins = [
+  "https://vibe-qoder.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 // CORS config: check origin against whitelist. Allow non-browser requests (no origin).
 const corsOptions = {
   origin: function (origin, callback) {
-    // If no origin (curl, server-to-server) allow it.
-    if (!origin) return callback(null, true);
-    // normalize
+    if (!origin) return callback(null, true); // allow server-to-server
     const normalized = origin.replace(/\/+$/, "");
     if (allowedOrigins.includes(normalized)) {
       return callback(null, true);
     } else {
       return callback(
-        new Error(
-          `CORS policy: Origin ${origin} is not allowed. Set ALLOWED_ORIGINS to allow it.`,
-        ),
+        new Error(`CORS policy: Origin ${origin} is not allowed.`),
       );
     }
   },
@@ -61,7 +50,7 @@ app.use(morgan("combined"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Simple middleware to return CORS error as JSON instead of HTML
+// CORS error as JSON instead of HTML
 app.use((err, req, res, next) => {
   if (err && err.message && err.message.startsWith("CORS policy")) {
     return res.status(403).json({
@@ -125,7 +114,6 @@ Generate ${language} code for: ${prompt}`;
 
     console.log(`Generating code for prompt: "${prompt}" in ${language}`);
 
-    // Get generative model and generate content
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt_text);
     const response = await result.response;
@@ -148,22 +136,19 @@ Generate ${language} code for: ${prompt}`;
   } catch (error) {
     console.error("Code generation error:", error);
 
-    // try to surface known errors
     const msg = (error && error.message) || String(error);
 
     if (msg.includes("API_KEY_INVALID")) {
       return res.status(401).json({
         error: "Invalid API key",
-        message:
-          "The provided Gemini API key is invalid. Please check your configuration.",
+        message: "The provided Gemini API key is invalid. Please check config.",
       });
     }
 
     if (msg.includes("RATE_LIMIT_EXCEEDED")) {
       return res.status(429).json({
         error: "Rate limit exceeded",
-        message:
-          "Gemini API rate limit has been exceeded. Please try again later.",
+        message: "Gemini API rate limit exceeded. Try again later.",
       });
     }
 
@@ -175,10 +160,9 @@ Generate ${language} code for: ${prompt}`;
   }
 });
 
-// Simple language detection based on code patterns
+// Simple language detection
 function detectLanguage(code, requestedLanguage) {
   if (!code) return requestedLanguage;
-
   const patterns = {
     javascript: [
       /function\s+\w+/,
@@ -221,17 +205,15 @@ function detectLanguage(code, requestedLanguage) {
     ],
     json: [/^\s*{/, /^\s*\[/, /"[\w-]+"\s*:/, /,\s*$/m],
   };
-
   for (const [lang, langPatterns] of Object.entries(patterns)) {
     if (langPatterns.some((pattern) => pattern.test(code))) {
       return lang;
     }
   }
-
   return requestedLanguage;
 }
 
-// Get supported languages
+// Supported languages
 app.get("/api/languages", (req, res) => {
   const languages = [
     { value: "javascript", label: "JavaScript", icon: "🟨" },
@@ -240,7 +222,6 @@ app.get("/api/languages", (req, res) => {
     { value: "java", label: "Java", icon: "☕" },
     { value: "cpp", label: "C++", icon: "⚡" },
   ];
-
   res.json({ languages });
 });
 
@@ -252,7 +233,7 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler (final)
+// Error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err && err.stack ? err.stack : err);
   res.status(500).json({
