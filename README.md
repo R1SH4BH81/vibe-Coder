@@ -19,6 +19,7 @@ Code Genie is a full-stack web application designed to help developers quickly g
 ### 🎥 Demo Video
 
 <video src="https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4" controls width="600"></video>
+[▶️ Watch Demo](https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4)
 
 <!-- Alternative: Clickable thumbnail (fallback) -->
 
