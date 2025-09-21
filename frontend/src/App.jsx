@@ -4,7 +4,6 @@ import Header from "./components/Header";
 import PromptInput from "./components/PromptInput";
 import CodeOutput from "./components/CodeOutput";
 import LoadingState from "./components/LoadingState";
-import HistoryPanel from "./components/HistoryPanel";
 import Button from "./components/Button";
 import { generateCode, getLanguages } from "./services/api";
 import { useLocalStorage } from "./hooks/useLocalStorage";
