@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -11,29 +12,71 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Initialize Gemini AI (ensure GEMINI_API_KEY in .env if you call the model)
+const genAI = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
+
+// Configure allowed origins
+// Use ALLOWED_ORIGINS env var (comma separated) in production.
+// Fallback to local dev origin(s).
+const defaultOrigins =
+  process.env.NODE_ENV === "production"
+    ? ["https://vibe-qoder.vercel.app"]
+    : ["http://localhost:3000", "http://127.0.0.1:3000"];
+
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",")
+    : defaultOrigins
+).map((o) => o.trim().replace(/\/+$/, "")); // strip trailing slashes
+
+// CORS config: check origin against whitelist. Allow non-browser requests (no origin).
+const corsOptions = {
+  origin: function (origin, callback) {
+    // If no origin (curl, server-to-server) allow it.
+    if (!origin) return callback(null, true);
+    // normalize
+    const normalized = origin.replace(/\/+$/, "");
+    if (allowedOrigins.includes(normalized)) {
+      return callback(null, true);
+    } else {
+      return callback(
+        new Error(
+          `CORS policy: Origin ${origin} is not allowed. Set ALLOWED_ORIGINS to allow it.`,
+        ),
+      );
+    }
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
 
 // Middleware
 app.use(helmet());
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://vibe-qoder.vercel.app/"]
-        : ["http://localhost:3000"],
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
 app.use(morgan("combined"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Simple middleware to return CORS error as JSON instead of HTML
+app.use((err, req, res, next) => {
+  if (err && err.message && err.message.startsWith("CORS policy")) {
+    return res.status(403).json({
+      error: "CORS error",
+      message: err.message,
+    });
+  }
+  next(err);
+});
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
-    message: "Code Genie API is running!",
+    message: "Code Genie API is running",
     timestamp: new Date().toISOString(),
   });
 });
@@ -47,7 +90,7 @@ app.post("/api/generate-code", async (req, res) => {
       includeComments = true,
     } = req.body;
 
-    if (!prompt) {
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return res.status(400).json({
         error: "Prompt is required",
         message:
@@ -55,7 +98,7 @@ app.post("/api/generate-code", async (req, res) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!genAI) {
       return res.status(500).json({
         error: "API configuration error",
         message:
@@ -63,7 +106,6 @@ app.post("/api/generate-code", async (req, res) => {
       });
     }
 
-    // Create a detailed prompt for better code generation
     const prompt_text = `You are an expert programmer who generates clean, well-documented, and production-ready code.
 
 Rules:
@@ -83,9 +125,8 @@ Generate ${language} code for: ${prompt}`;
 
     console.log(`Generating code for prompt: "${prompt}" in ${language}`);
 
-    // Get the generative model
+    // Get generative model and generate content
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const result = await model.generateContent(prompt_text);
     const response = await result.response;
     const generatedCode = response.text();
@@ -94,20 +135,23 @@ Generate ${language} code for: ${prompt}`;
     const codeMatch = generatedCode.match(/```(?:[\w+#-]*\n)?([\s\S]*?)```/);
     const cleanCode = codeMatch ? codeMatch[1].trim() : generatedCode.trim();
 
-    // Detect the actual language if not specified or if auto-detection is requested
+    // Detect language
     const detectedLanguage = detectLanguage(cleanCode, language);
 
     res.json({
       success: true,
       code: cleanCode,
       language: detectedLanguage,
-      prompt: prompt,
+      prompt,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Code generation error:", error);
 
-    if (error.message?.includes("API_KEY_INVALID")) {
+    // try to surface known errors
+    const msg = (error && error.message) || String(error);
+
+    if (msg.includes("API_KEY_INVALID")) {
       return res.status(401).json({
         error: "Invalid API key",
         message:
@@ -115,7 +159,7 @@ Generate ${language} code for: ${prompt}`;
       });
     }
 
-    if (error.message?.includes("RATE_LIMIT_EXCEEDED")) {
+    if (msg.includes("RATE_LIMIT_EXCEEDED")) {
       return res.status(429).json({
         error: "Rate limit exceeded",
         message:
@@ -126,8 +170,7 @@ Generate ${language} code for: ${prompt}`;
     res.status(500).json({
       error: "Internal server error",
       message: "Failed to generate code. Please try again later.",
-      details:
-        process.env.NODE_ENV === "development" ? error.message : undefined,
+      details: process.env.NODE_ENV === "development" ? msg : undefined,
     });
   }
 });
@@ -201,15 +244,6 @@ app.get("/api/languages", (req, res) => {
   res.json({ languages });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    message: "Something went wrong on our end.",
-  });
-});
-
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -218,15 +252,27 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🧞‍♂️ Code Genie API server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(
-    `🔑 Gemini API Key: ${
-      process.env.GEMINI_API_KEY ? "✅ Configured" : "❌ Missing"
-    }`,
-  );
+// Global error handler (final)
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err && err.stack ? err.stack : err);
+  res.status(500).json({
+    error: "Internal server error",
+    message: "Something went wrong on our end.",
+  });
 });
+
+// Start server
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🧞‍♂️ Code Genie API server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(
+      `🔑 Gemini API Key: ${
+        process.env.GEMINI_API_KEY ? "✅ Configured" : "❌ Missing"
+      }`,
+    );
+    console.log(`🔒 Allowed origins: ${allowedOrigins.join(", ")}`);
+  });
+}
 
 module.exports = app;
