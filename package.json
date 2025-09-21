@@ -1,0 +1,24 @@
+{
+  "name": "code-genie",
+  "version": "1.0.0",
+  "description": "AI-powered code generation application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": [
+    "ai",
+    "code-generation",
+    "react",
+    "nodejs"
+  ],
+  "author": "Code Genie Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,39 @@
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 0 16px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+  letter-spacing: -0.025em;
+}
+
+.app.dark .title {
+  color: #ececec;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.app.dark .subtitle {
+  color: #9ca3af;
+}
+
+.description {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.app.dark .description {
+  color: #6b7280;
+}
