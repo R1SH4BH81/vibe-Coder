@@ -84,7 +84,7 @@ Generate ${language} code for: ${prompt}`;
     console.log(`Generating code for prompt: "${prompt}" in ${language}`);
 
     // Get the generative model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(prompt_text);
     const response = await result.response;

@@ -154,7 +154,7 @@ function App() {
               {darkMode ? "Light" : "Dark"}
             </Button>
 
-            <Button
+            {/* <Button
               variant="secondary"
               onClick={() => setShowHistory(!showHistory)}
               title="View generation history"
@@ -167,7 +167,7 @@ function App() {
                   {history.length > 99 ? "99+" : history.length}
                 </span>
               )}
-            </Button>
+            </Button> */}
           </div>
 
           {generatedCode && (
@@ -178,7 +178,9 @@ function App() {
         </div>
 
         {/* Main Content */}
-        <div className={styles.mainContent}>
+        <div
+          className={`${styles.mainContent} ${isLoading ? styles.blurred : ""}`}
+        >
           {/* Left Panel - Input */}
           <div className={styles.leftPanel}>
             <PromptInput
@@ -191,8 +193,6 @@ function App() {
               isLoading={isLoading}
               darkMode={darkMode}
             />
-
-            {isLoading && <LoadingState darkMode={darkMode} />}
           </div>
 
           {/* Right Panel - Output */}
@@ -205,6 +205,13 @@ function App() {
             />
           </div>
         </div>
+
+        {/* Centered Loading State */}
+        {isLoading && (
+          <div className={styles.loadingOverlay}>
+            <LoadingState darkMode={darkMode} />
+          </div>
+        )}
 
         {/* History Panel */}
         {showHistory && (
@@ -238,11 +245,11 @@ function App() {
                 </div>
               </div>
 
-              <HistoryPanel
+              {/* <HistoryPanel
                 history={history}
                 onSelect={handleHistorySelect}
                 darkMode={darkMode}
-              />
+              /> */}
             </div>
           </div>
         )}

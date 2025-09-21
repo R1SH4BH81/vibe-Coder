@@ -49,6 +49,11 @@
   gap: 24px;
   max-width: 768px;
   margin: 0 auto;
+  transition: filter 0.3s ease;
+}
+
+.mainContent.blurred {
+  filter: blur(4px);
 }
 
 @media (min-width: 1024px) {
@@ -188,4 +193,16 @@
 .app.dark .closeButton:hover {
   color: #d1d5db;
   background: #3e3e42;
+}
+
+/* Loading Overlay */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
 }

@@ -7,9 +7,24 @@
 .title {
   font-size: 32px;
   font-weight: 700;
-  color: #1f2937;
+  color: #0f55b8;
   margin-bottom: 12px;
   letter-spacing: -0.025em;
+  background: linear-gradient(90deg, #0f55b8 25%, #87ceeb 50%, #0f55b8 75%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 20s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .app.dark .title {

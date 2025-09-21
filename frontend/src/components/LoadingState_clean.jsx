@@ -1,11 +1,9 @@
 import { Loader2 } from "lucide-react";
-import styles from "./LoadingState.css";
+import "./LoadingState.css";
 
 const LoadingState = ({ darkMode }) => {
   return (
-    <div
-      className={`${styles.loadingContainer} ${darkMode ? styles.dark : ""}`}
-    >
+    <div>
       <div className="loader-wrapper">
         <span className="loader-letter">G</span>
         <span className="loader-letter">e</span>
