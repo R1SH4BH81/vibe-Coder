@@ -14,7 +14,23 @@ Code Genie is a full-stack web application designed to help developers quickly g
 - Supports 15+ programming languages (JavaScript, Python, Java, C++, TypeScript, Go, Rust, etc.)
 - Intelligent language detection and auto-formatting
 - Context-aware prompts for better code quality
-  ![alt text](image.png)
+
+### 🎥 **Demo Video**
+
+<!-- Option 1: YouTube/Vimeo embed (most common) -->
+
+[![Watch Demo Video](image.png)](https://res.cloudinary.com/djap3kkqi/video/upload/v1758471938/code_genie_-_Made_with_Clipchamp_lsbokl.mp4)
+
+<!-- Option 2: Direct video file (if you have a .mp4 file) -->
+<!-- <video width="640" height="360" controls>
+  <source src="demo-video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video> -->
+
+<!-- Option 3: GIF alternative (if you want to show a preview) -->
+<!-- ![Demo GIF](demo.gif) -->
+
+![code genie interface](image.png)
 
 ### 🎨 **Modern User Interface**
 
