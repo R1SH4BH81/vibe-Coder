@@ -196,16 +196,6 @@ app.get("/api/languages", (req, res) => {
     { value: "python", label: "Python", icon: "🐍" },
     { value: "java", label: "Java", icon: "☕" },
     { value: "cpp", label: "C++", icon: "⚡" },
-    { value: "csharp", label: "C#", icon: "🔷" },
-    { value: "go", label: "Go", icon: "🐹" },
-    { value: "rust", label: "Rust", icon: "🦀" },
-    { value: "php", label: "PHP", icon: "🐘" },
-    { value: "ruby", label: "Ruby", icon: "💎" },
-    { value: "html", label: "HTML", icon: "🌐" },
-    { value: "css", label: "CSS", icon: "🎨" },
-    { value: "sql", label: "SQL", icon: "🗄️" },
-    { value: "bash", label: "Bash", icon: "💻" },
-    { value: "json", label: "JSON", icon: "📄" },
   ];
 
   res.json({ languages });

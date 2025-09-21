@@ -73,5 +73,6 @@
 
 .submitButton:disabled {
   background: #d1d5db;
+  color: #33333384;
   cursor: not-allowed;
 }

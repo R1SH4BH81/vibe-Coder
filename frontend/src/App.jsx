@@ -212,47 +212,6 @@ function App() {
             <LoadingState darkMode={darkMode} />
           </div>
         )}
-
-        {/* History Panel */}
-        {showHistory && (
-          <div
-            className={styles.historyOverlay}
-            onClick={() => setShowHistory(false)}
-          >
-            <div
-              className={`${styles.historyModal} ${
-                darkMode ? styles.dark : ""
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.historyHeader}>
-                <h3 className={styles.historyTitle}>Generation History</h3>
-                <div className={styles.historyActions}>
-                  {history.length > 0 && (
-                    <button
-                      onClick={clearHistory}
-                      className={styles.clearButton}
-                    >
-                      Clear All
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowHistory(false)}
-                    className={styles.closeButton}
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-              </div>
-
-              {/* <HistoryPanel
-                history={history}
-                onSelect={handleHistorySelect}
-                darkMode={darkMode}
-              /> */}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
