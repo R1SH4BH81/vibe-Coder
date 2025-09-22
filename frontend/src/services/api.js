@@ -75,20 +75,6 @@ export const generateCode = async ({ prompt, includeComments = true }) => {
 };
 
 /**
- * Get list of supported programming languages
- * @returns {Promise<Object>} Languages list
- */
-export const getLanguages = async () => {
-  try {
-    const response = await api.get("/api/languages");
-    return response;
-  } catch (error) {
-    console.error("Failed to fetch languages:", error);
-    throw error;
-  }
-};
-
-/**
  * Health check endpoint
  * @returns {Promise<Object>} Health status
  */

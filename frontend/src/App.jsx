@@ -5,7 +5,7 @@ import PromptInput from "./components/PromptInput";
 import CodeOutput from "./components/CodeOutput";
 import LoadingState from "./components/LoadingState";
 import Button from "./components/Button";
-import { generateCode, getLanguages } from "./services/api";
+import { generateCode } from "./services/api";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { Moon, Sun, History, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -13,41 +13,18 @@ import styles from "./App.module.css";
 
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [generatedCode, setGeneratedCode] = useState("");
   const [detectedLanguage, setDetectedLanguage] = useState("javascript");
   const [isLoading, setIsLoading] = useState(false);
-  const [languages, setLanguages] = useState([]);
   const [history, setHistory] = useLocalStorage("codeGenieHistory", []);
   const [showHistory, setShowHistory] = useState(false);
   const [darkMode, setDarkMode] = useLocalStorage("darkMode", true);
-
-  // Load available languages on mount
-  useEffect(() => {
-    loadLanguages();
-  }, []);
 
   // Apply dark mode class to document
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
     document.body.classList.toggle("dark", darkMode);
   }, [darkMode]);
-
-  const loadLanguages = async () => {
-    try {
-      const response = await getLanguages();
-      setLanguages(response.languages || []);
-    } catch (error) {
-      console.error("Failed to load languages:", error);
-      // Fallback languages
-      setLanguages([
-        { value: "javascript", label: "JavaScript", icon: "🟨" },
-        { value: "python", label: "Python", icon: "🐍" },
-        { value: "java", label: "Java", icon: "☕" },
-        { value: "cpp", label: "C++", icon: "⚡" },
-      ]);
-    }
-  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -63,7 +40,6 @@ function App() {
     try {
       const response = await generateCode({
         prompt: prompt.trim(),
-        language: selectedLanguage,
         includeComments: true,
       });
 
@@ -109,7 +85,6 @@ function App() {
     setPrompt(item.prompt);
     setGeneratedCode(item.code);
     setDetectedLanguage(item.language);
-    setSelectedLanguage(item.language);
     setShowHistory(false);
     toast.success("Loaded from history!");
   };
@@ -144,6 +119,11 @@ function App() {
         {/* Controls */}
         <div className={styles.controls}>
           <div className={styles.controlsLeft}>
+            {generatedCode && (
+              <div className={styles.languageInfo}>
+                Generated: <span>{detectedLanguage}</span>
+              </div>
+            )}
             <Button
               variant="secondary"
               onClick={toggleDarkMode}
@@ -168,12 +148,6 @@ function App() {
               )}
             </Button> */}
           </div>
-
-          {generatedCode && (
-            <div className={styles.languageInfo}>
-              Generated: <span>{detectedLanguage}</span>
-            </div>
-          )}
         </div>
 
         {/* Main Content */}
@@ -185,9 +159,6 @@ function App() {
             <PromptInput
               prompt={prompt}
               setPrompt={setPrompt}
-              selectedLanguage={selectedLanguage}
-              setSelectedLanguage={setSelectedLanguage}
-              languages={languages}
               onGenerate={handleGenerate}
               isLoading={isLoading}
               darkMode={darkMode}

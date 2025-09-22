@@ -163,9 +163,7 @@ Generate ${detectedLanguage} code for: ${prompt}`;
 
     // Final language detection from generated code
     const finalLanguage =
-      detectedLanguage === "webapp"
-        ? "html"
-        : detectLanguageFromCode(cleanCode, detectedLanguage);
+      detectedLanguage === "webapp" ? "html" : detectedLanguage;
 
     res.json({
       success: true,
@@ -263,20 +261,6 @@ function detectLanguageFromPrompt(prompt) {
   // Default to JavaScript
   return "javascript";
 }
-
-// Supported languages (kept for backward compatibility)
-app.get("/api/languages", (req, res) => {
-  const languages = [
-    { value: "javascript", label: "JavaScript", icon: "🟨" },
-    { value: "typescript", label: "TypeScript", icon: "🔷" },
-    { value: "python", label: "Python", icon: "🐍" },
-    { value: "java", label: "Java", icon: "☕" },
-    { value: "cpp", label: "C++", icon: "⚡" },
-    { value: "html", label: "HTML", icon: "🌐" },
-    { value: "css", label: "CSS", icon: "🎨" },
-  ];
-  res.json({ languages });
-});
 
 // 404 handler
 app.use((req, res) => {
