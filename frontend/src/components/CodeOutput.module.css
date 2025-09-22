@@ -4,6 +4,8 @@
   border: 1px solid #d1d5db;
   overflow: hidden;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  width: 100%;
+  max-width: 100%;
 }
 
 .outputContainer.dark {
@@ -75,6 +77,105 @@
   position: relative;
   max-height: 600px;
   overflow: auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Responsive code content */
+.codeContainer > div {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Force text wrapping in code blocks */
+.codeContainer pre {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-all !important;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.codeContainer code {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-all !important;
+  max-width: 100%;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .outputContainer {
+    margin: 0;
+    border-radius: 8px;
+  }
+
+  .outputHeader {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .outputTitle {
+    font-size: 13px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .outputActions {
+    flex-shrink: 0;
+  }
+
+  .actionButton {
+    padding: 4px;
+  }
+
+  .codeContainer {
+    max-height: 400px;
+  }
+
+  .codeContainer pre {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    padding: 12px !important;
+  }
+
+  .emptyState {
+    padding: 32px 16px;
+  }
+
+  .emptyStateTitle {
+    font-size: 14px;
+  }
+
+  .emptyStateDescription {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .outputHeader {
+    padding: 6px 8px;
+  }
+
+  .outputTitle {
+    font-size: 12px;
+  }
+
+  .codeContainer {
+    max-height: 300px;
+  }
+
+  .codeContainer pre {
+    font-size: 11px !important;
+    padding: 8px !important;
+  }
+
+  .emptyState {
+    padding: 24px 12px;
+  }
 }
 
 .emptyState {
