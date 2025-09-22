@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Download, Code } from "lucide-react";
+import { Copy, Download, Code, FileText, Palette, Zap } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   vscDarkPlus,
@@ -10,20 +10,105 @@ import styles from "./CodeOutput.module.css";
 
 const CodeOutput = ({ code, language, prompt, darkMode }) => {
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      toast.success("Code copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy code");
+  // Parse multi-file code into separate files
+  const parseMultiFileCode = (code) => {
+    if (!code) return [];
+
+    // Check for structured multi-file format
+    const htmlMatch = code.match(
+      /<!-- HTML -->[\s\S]*?([\s\S]*?)(?=\/\* CSS \*\/|$)/i,
+    );
+    const cssMatch = code.match(
+      /\/\* CSS \*\/[\s\S]*?([\s\S]*?)(?=\/\/ JavaScript|$)/i,
+    );
+    const jsMatch = code.match(/\/\/ JavaScript[\s\S]*?([\s\S]*?)$/i);
+
+    const files = [];
+
+    if (htmlMatch && htmlMatch[1].trim()) {
+      files.push({
+        name: "index.html",
+        language: "html",
+        content: htmlMatch[1].trim(),
+        icon: FileText,
+      });
     }
+
+    if (cssMatch && cssMatch[1].trim()) {
+      files.push({
+        name: "styles.css",
+        language: "css",
+        content: cssMatch[1].trim(),
+        icon: Palette,
+      });
+    }
+
+    if (jsMatch && jsMatch[1].trim()) {
+      files.push({
+        name: "script.js",
+        language: "javascript",
+        content: jsMatch[1].trim(),
+        icon: Zap,
+      });
+    }
+
+    // If no structured format found, try to detect if it's a complete HTML with embedded CSS/JS
+    if (files.length === 0) {
+      const hasHtmlTags = /<html|<div|<body|<!DOCTYPE/i.test(code);
+      const hasStyleTags = /<style[\s\S]*?<\/style>/i.test(code);
+      const hasScriptTags = /<script[\s\S]*?<\/script>/i.test(code);
+
+      if (hasHtmlTags) {
+        files.push({
+          name: "index.html",
+          language: "html",
+          content: code,
+          icon: FileText,
+        });
+
+        // Extract CSS from style tags
+        if (hasStyleTags) {
+          const styleMatch = code.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          if (styleMatch && styleMatch[1].trim()) {
+            files.push({
+              name: "styles.css",
+              language: "css",
+              content: styleMatch[1].trim(),
+              icon: Palette,
+            });
+          }
+        }
+
+        // Extract JavaScript from script tags
+        if (hasScriptTags) {
+          const scriptMatch = code.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+          if (scriptMatch && scriptMatch[1].trim()) {
+            files.push({
+              name: "script.js",
+              language: "javascript",
+              content: scriptMatch[1].trim(),
+              icon: Zap,
+            });
+          }
+        }
+      } else {
+        // Single file
+        files.push({
+          name: `code.${getFileExtension(language)}`,
+          language: language,
+          content: code,
+          icon: Code,
+        });
+      }
+    }
+
+    return files;
   };
 
-  const downloadCode = () => {
-    const fileExtensions = {
+  const getFileExtension = (lang) => {
+    const extensions = {
       javascript: "js",
       typescript: "ts",
       python: "py",
@@ -40,21 +125,56 @@ const CodeOutput = ({ code, language, prompt, darkMode }) => {
       bash: "sh",
       json: "json",
     };
+    return extensions[lang] || "txt";
+  };
 
-    const extension = fileExtensions[language] || "txt";
-    const filename = `generated-code.${extension}`;
+  const files = parseMultiFileCode(code);
+  const currentFile = files[activeTab] || files[0];
 
-    const blob = new Blob([code], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const copyToClipboard = async () => {
+    try {
+      const contentToCopy = currentFile ? currentFile.content : code;
+      await navigator.clipboard.writeText(contentToCopy);
+      setCopied(true);
+      toast.success(
+        `${currentFile ? currentFile.name : "Code"} copied to clipboard!`,
+      );
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy code");
+    }
+  };
 
-    toast.success(`Code downloaded as ${filename}`);
+  const downloadCode = () => {
+    if (files.length > 1) {
+      // Download all files for multi-file projects
+      files.forEach((file, index) => {
+        setTimeout(() => {
+          const blob = new Blob([file.content], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = file.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, index * 100); // Small delay between downloads
+      });
+      toast.success(`Downloaded ${files.length} files`);
+    } else if (currentFile) {
+      // Download single file
+      const blob = new Blob([currentFile.content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentFile.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${currentFile.name}`);
+    }
   };
 
   if (!code) {
@@ -80,14 +200,22 @@ const CodeOutput = ({ code, language, prompt, darkMode }) => {
       <div className={styles.outputHeader}>
         <div className={styles.outputTitle}>
           <Code size={16} />
-          {language} • {code.split("\n").length} lines
+          {files.length > 1
+            ? `${files.length} Files`
+            : currentFile
+            ? currentFile.name
+            : "Generated Code"}{" "}
+          • {(currentFile ? currentFile.content : code).split("\n").length}{" "}
+          lines
         </div>
 
         <div className={styles.outputActions}>
           <button
             onClick={copyToClipboard}
             className={styles.actionButton}
-            title="Copy to clipboard"
+            title={`Copy ${
+              currentFile ? currentFile.name : "code"
+            } to clipboard`}
           >
             <Copy size={16} />
           </button>
@@ -95,16 +223,41 @@ const CodeOutput = ({ code, language, prompt, darkMode }) => {
           <button
             onClick={downloadCode}
             className={styles.actionButton}
-            title="Download code"
+            title={
+              files.length > 1
+                ? "Download all files"
+                : `Download ${currentFile ? currentFile.name : "code"}`
+            }
           >
             <Download size={16} />
           </button>
         </div>
       </div>
 
+      {/* File Tabs */}
+      {files.length > 1 && (
+        <div className={styles.fileTabs}>
+          {files.map((file, index) => {
+            const IconComponent = file.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => setActiveTab(index)}
+                className={`${styles.fileTab} ${
+                  index === activeTab ? styles.activeTab : ""
+                }`}
+              >
+                <IconComponent size={14} />
+                {file.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className={styles.codeContainer}>
         <SyntaxHighlighter
-          language={language}
+          language={currentFile ? currentFile.language : language}
           style={darkMode ? vscDarkPlus : vs}
           showLineNumbers={true}
           customStyle={{
@@ -123,7 +276,7 @@ const CodeOutput = ({ code, language, prompt, darkMode }) => {
             fontSize: "13px",
           }}
         >
-          {code}
+          {currentFile ? currentFile.content : code}
         </SyntaxHighlighter>
 
         {copied && <div className={styles.copySuccess}>✓ Copied!</div>}

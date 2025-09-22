@@ -220,3 +220,73 @@
   font-weight: 500;
   animation: fadeIn 0.3s ease;
 }
+
+/* File Tabs */
+.fileTabs {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 16px;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.outputContainer.dark .fileTabs {
+  background: #1a1a1d;
+  border-color: #3e3e42;
+}
+
+.fileTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.fileTab:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.fileTab.activeTab {
+  color: #2563eb;
+  background: white;
+  border-bottom-color: #2563eb;
+}
+
+.outputContainer.dark .fileTab {
+  color: #9ca3af;
+}
+
+.outputContainer.dark .fileTab:hover {
+  color: #d1d5db;
+  background: #2d2d30;
+}
+
+.outputContainer.dark .fileTab.activeTab {
+  color: #60a5fa;
+  background: #2d2d30;
+  border-bottom-color: #60a5fa;
+}
+
+@media (max-width: 768px) {
+  .fileTabs {
+    padding: 0 12px;
+  }
+
+  .fileTab {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}

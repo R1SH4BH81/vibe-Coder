@@ -73,11 +73,7 @@ app.get("/api/health", (req, res) => {
 // Code generation endpoint
 app.post("/api/generate-code", async (req, res) => {
   try {
-    const {
-      prompt,
-      language = "javascript",
-      includeComments = true,
-    } = req.body;
+    const { prompt, includeComments = true } = req.body;
 
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return res.status(400).json({
@@ -95,24 +91,66 @@ app.post("/api/generate-code", async (req, res) => {
       });
     }
 
-    const prompt_text = `You are an expert programmer who generates clean, well-documented, and production-ready code.
+    // Detect language from user prompt
+    const detectedLanguage = detectLanguageFromPrompt(prompt);
+
+    let prompt_text;
+
+    if (detectedLanguage === "webapp") {
+      // For web applications, provide complete HTML, CSS, and JavaScript
+      prompt_text = `You are an expert web developer who creates complete, functional web applications.
+
+Rules:
+1. Generate a COMPLETE web application with HTML, CSS, and JavaScript in separate sections
+2. Always include all three files: HTML, CSS, and JavaScript
+3. Make the application fully functional and interactive
+4. Use modern web development best practices
+5. Include responsive design
+6. Add helpful comments ${
+        includeComments ? "throughout the code" : "only when essential"
+      }
+7. Make the UI attractive and user-friendly
+8. Handle edge cases and user interactions properly
+9. IMPORTANT: Format your response EXACTLY as shown below with clear section markers
+
+Generate a complete web application for: ${prompt}
+
+Format your response with these EXACT section markers:
+
+<!-- HTML -->
+<!DOCTYPE html>
+<html lang="en">
+[Your HTML code here]
+</html>
+
+/* CSS */
+[Your CSS code here]
+
+// JavaScript
+[Your JavaScript code here]`;
+    } else {
+      // For specific programming languages
+      prompt_text = `You are an expert programmer who generates clean, well-documented, and production-ready code.
 
 Rules:
 1. Generate only the requested code without explanations unless specifically asked
 2. Include helpful comments ${
-      includeComments ? "always" : "only when essential"
-    }
-3. Follow best practices and conventions for ${language}
+        includeComments ? "always" : "only when essential"
+      }
+3. Follow best practices and conventions for ${detectedLanguage}
 4. Make the code readable and maintainable
 5. If the request is unclear, generate the most likely interpretation
 6. Handle edge cases appropriately
 7. Use modern syntax and patterns
 
-Target Language: ${language}
+Target Language: ${detectedLanguage}
 
-Generate ${language} code for: ${prompt}`;
+Generate ${detectedLanguage} code for: ${prompt}`;
+    }
 
-    console.log(`Generating code for prompt: "${prompt}" in ${language}`);
+    console.log(
+      `Generating code for prompt: "${prompt}" - detected language: ${detectedLanguage}`,
+    );
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt_text);
@@ -123,13 +161,16 @@ Generate ${language} code for: ${prompt}`;
     const codeMatch = generatedCode.match(/```(?:[\w+#-]*\n)?([\s\S]*?)```/);
     const cleanCode = codeMatch ? codeMatch[1].trim() : generatedCode.trim();
 
-    // Detect language
-    const detectedLanguage = detectLanguage(cleanCode, language);
+    // Final language detection from generated code
+    const finalLanguage =
+      detectedLanguage === "webapp"
+        ? "html"
+        : detectLanguageFromCode(cleanCode, detectedLanguage);
 
     res.json({
       success: true,
       code: cleanCode,
-      language: detectedLanguage,
+      language: finalLanguage,
       prompt,
       timestamp: new Date().toISOString(),
     });
@@ -160,60 +201,70 @@ Generate ${language} code for: ${prompt}`;
   }
 });
 
-// Simple language detection
-function detectLanguage(code, requestedLanguage) {
-  if (!code) return requestedLanguage;
-  const patterns = {
+// Language detection from user prompts
+function detectLanguageFromPrompt(prompt) {
+  const lowercasePrompt = prompt.toLowerCase();
+
+  // Language keywords mapping
+  const languageKeywords = {
     javascript: [
-      /function\s+\w+/,
-      /const\s+\w+\s*=/,
-      /=>\s*{/,
-      /console\.log/,
-      /require\(/,
-      /import\s+/,
+      "javascript",
+      "js",
+      "node",
+      "react",
+      "vue",
+      "angular",
+      "jquery",
+      "express",
     ],
-    python: [
-      /def\s+\w+/,
-      /import\s+\w+/,
-      /from\s+\w+\s+import/,
-      /print\(/,
-      /if\s+__name__\s*==\s*["']__main__["']/,
-      /:\s*$/m,
-    ],
-    java: [
-      /public\s+class/,
-      /public\s+static\s+void\s+main/,
-      /System\.out\.println/,
-      /import\s+java\./,
-      /\w+\s+\w+\s*\([^)]*\)\s*{/,
-    ],
-    cpp: [
-      /#include\s*</,
-      /using\s+namespace\s+std/,
-      /int\s+main\s*\(/,
-      /cout\s*<</,
-      /std::/,
-    ],
-    html: [/<html/, /<div/, /<script/, /<style/, /<!DOCTYPE/],
-    css: [/\{[^}]*\}/, /@media/, /\.[\w-]+\s*{/, /#[\w-]+\s*{/],
-    sql: [
-      /SELECT\s+/i,
-      /FROM\s+/i,
-      /WHERE\s+/i,
-      /INSERT\s+INTO/i,
-      /CREATE\s+TABLE/i,
-    ],
-    json: [/^\s*{/, /^\s*\[/, /"[\w-]+"\s*:/, /,\s*$/m],
+    typescript: ["typescript", "ts"],
+    python: ["python", "py", "django", "flask", "pandas", "numpy"],
+    java: ["java", "spring", "android"],
+    cpp: ["c++", "cpp", "c plus plus"],
+    csharp: ["c#", "csharp", "c sharp", ".net", "dotnet"],
+    go: ["go", "golang"],
+    rust: ["rust"],
+    php: ["php", "laravel", "wordpress"],
+    ruby: ["ruby", "rails"],
+    html: ["html", "web page", "website"],
+    css: ["css", "styling", "styles"],
+    sql: ["sql", "database", "mysql", "postgresql", "sqlite"],
+    bash: ["bash", "shell", "script"],
+    json: ["json"],
   };
-  for (const [lang, langPatterns] of Object.entries(patterns)) {
-    if (langPatterns.some((pattern) => pattern.test(code))) {
-      return lang;
+
+  // Check for app-related keywords that should return HTML/CSS/JS
+  const appKeywords = [
+    "app",
+    "website",
+    "web page",
+    "todo",
+    "calculator",
+    "game",
+    "dashboard",
+    "form",
+    "landing page",
+  ];
+  const isAppRequest = appKeywords.some((keyword) =>
+    lowercasePrompt.includes(keyword),
+  );
+
+  if (isAppRequest) {
+    return "webapp"; // Special case for complete web applications
+  }
+
+  // Check for specific language mentions
+  for (const [language, keywords] of Object.entries(languageKeywords)) {
+    if (keywords.some((keyword) => lowercasePrompt.includes(keyword))) {
+      return language;
     }
   }
-  return requestedLanguage;
+
+  // Default to JavaScript
+  return "javascript";
 }
 
-// Supported languages
+// Supported languages (kept for backward compatibility)
 app.get("/api/languages", (req, res) => {
   const languages = [
     { value: "javascript", label: "JavaScript", icon: "🟨" },
@@ -221,6 +272,8 @@ app.get("/api/languages", (req, res) => {
     { value: "python", label: "Python", icon: "🐍" },
     { value: "java", label: "Java", icon: "☕" },
     { value: "cpp", label: "C++", icon: "⚡" },
+    { value: "html", label: "HTML", icon: "🌐" },
+    { value: "css", label: "CSS", icon: "🎨" },
   ];
   res.json({ languages });
 });

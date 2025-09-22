@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
 
 // Create axios instance with default config
 const api = axios.create({
@@ -54,22 +54,16 @@ api.interceptors.response.use(
 );
 
 /**
- * Generate code based on prompt and language
+ * Generate code based on prompt
  * @param {Object} params - Generation parameters
  * @param {string} params.prompt - The code generation prompt
- * @param {string} params.language - Target programming language
  * @param {boolean} params.includeComments - Whether to include comments
  * @returns {Promise<Object>} Generated code response
  */
-export const generateCode = async ({
-  prompt,
-  language = "javascript",
-  includeComments = true,
-}) => {
+export const generateCode = async ({ prompt, includeComments = true }) => {
   try {
     const response = await api.post("/api/generate-code", {
       prompt,
-      language,
       includeComments,
     });
 
