@@ -289,7 +289,7 @@ if (require.main === module) {
         process.env.GEMINI_API_KEY ? "✅ Configured" : "❌ Missing"
       }`,
     );
-    console.log(`🔒 Allowed origins: ${allowedOrigins.join(", ")}`);
+    console.log(`🔒 Allowed origins: ${allowedOrigins.join(" | ")}`);
   });
 }
 
